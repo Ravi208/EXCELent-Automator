@@ -1,0 +1,5 @@
+{
+  "name": "EXCELent Automator",
+  "description": "An AI-powered tool to automate Excel file edits using natural language instructions. Upload your file, provide step-by-step commands, save your automation steps for future use, and download the processed file.",
+  "requestFramePermissions": []
+}
