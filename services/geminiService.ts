@@ -3,11 +3,14 @@ import { GoogleGenAI } from "@google/genai";
 type Data = (string | number | boolean | null)[][];
 type FileData = { name: string; data: Data; };
 
-const API_KEY = process.env.API_KEY;
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// Helper to safely get the API key, guarding against 'process' being undefined in browser environments.
+// This defers the error to when the API is actually called, instead of crashing the app at startup.
+const getApiKey = (): string | null => {
+  if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+    return process.env.API_KEY;
+  }
+  return null;
+};
 
 const buildPrompt = (filesData: FileData[], instructions: string[]): string => {
   const dataString = filesData.map(file => 
@@ -35,6 +38,13 @@ Identify the primary file to be modified from the instructions, perform the oper
 };
 
 export const automateExcelEdit = async (filesData: FileData[], instructions: string[]): Promise<Data> => {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    throw new Error("API_KEY environment variable not set or not accessible. Please ensure your deployment environment configures 'process.env.API_KEY'.");
+  }
+
+  // Initialize GoogleGenAI client only when needed, after API key check
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   const prompt = buildPrompt(filesData, instructions);
 
   try {
